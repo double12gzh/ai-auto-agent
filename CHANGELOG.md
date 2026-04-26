@@ -5,10 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.1] - Initial Beta
 
 ### Added
 
+- **Core Engine**: Automated AI agent assistant for Antigravity IDE.
+- **Feature**: Auto Retry capability to automatically resume operations upon agent failure or limits.
+- **Feature**: Auto Accept functionality handling file edits, terminal execution, and VS Code permission dialogues.
+- **Feature**: Smart Model Rotation fallback mechanism handling rate limits and quota exhaustion across configured models.
+- **Security**: Dangerous command blocking mechanism protecting against destructive commands (e.g., `rm -rf`, `mkfs`) via bounded regex matching.
+- **Architecture**: Scalable multi-session Chrome DevTools Protocol (CDP) client managing multiple agent webviews concurrently.
+- **Architecture**: Event-driven `MutationObserver` button detection inside webviews replacing slow periodic polling.
 - Bilingual (English/Chinese) support for GitHub Issue templates (Bug Report & Feature Request).
 - Development environment prerequisites and setup guidelines to both `README.md` and `README.zh-CN.md`.
 
@@ -24,15 +31,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Eliminated all residual ESLint warnings (`@typescript-eslint/no-explicit-any` and `@typescript-eslint/no-unused-vars`) in both source code and testing suites, achieving a zero-warning baseline.
 - Fixed `TS2345` type mismatch compilation errors related to `http.IncomingMessage` in `cdpClient.ts`.
 - Resolved missing ESLint dependencies (`@eslint/js`, `typescript-eslint`) that previously blocked CI/CD pipelines.
-
-## [0.0.1] - Initial Beta
-
-### Added
-
-- **Core Engine**: Automated AI agent assistant for Antigravity IDE.
-- **Feature**: Auto Retry capability to automatically resume operations upon agent failure or limits.
-- **Feature**: Auto Accept functionality handling file edits, terminal execution, and VS Code permission dialogues.
-- **Feature**: Smart Model Rotation fallback mechanism handling rate limits and quota exhaustion across configured models.
-- **Security**: Dangerous command blocking mechanism protecting against destructive commands (e.g., `rm -rf`, `mkfs`) via bounded regex matching.
-- **Architecture**: Scalable multi-session Chrome DevTools Protocol (CDP) client managing multiple agent webviews concurrently.
-- **Architecture**: Event-driven `MutationObserver` button detection inside webviews replacing slow periodic polling.
