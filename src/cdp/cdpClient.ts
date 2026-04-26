@@ -225,10 +225,7 @@ export class CDPClient implements vscode.Disposable {
 			const req = http.get(
 				`http://127.0.0.1:${this.port}/json`,
 				{ timeout: 3000 },
-				(res: {
-					statusCode: number;
-					on: (event: string, callback: (data: Buffer) => void) => void;
-				}) => {
+				(res: http.IncomingMessage) => {
 					let data = '';
 					res.on('data', (chunk: Buffer) => {
 						data += chunk;
