@@ -83,12 +83,21 @@ alias antigravity='antigravity --remote-debugging-port=9333'
 
 ---
 
-## 🛠️ 常用开发命令
+## 🛠️ 开发与贡献指南
 
-如果你想从源码本地开发或者贡献代码：
+如果你想从源码本地开发或者贡献代码，请先准备以下开发环境：
+
+### 环境要求
+
+- **Node.js**：建议使用 `v22.x` 版本（与 CI/CD 管道保持一致）。
+- **编辑器**：VS Code `v1.100.0+` 或 Antigravity IDE。
+- **推荐插件**：强烈建议安装 **ESLint** 和 **Prettier** 插件以获得实时代码提示。
+- **调试要求**：在本地测试插件时，必须使用 `--remote-debugging-port=9333` 参数启动宿主 IDE（Antigravity），以开启 CDP 端口。
+
+### 快速上手
 
 ```bash
-# 1. 安装依赖（自动配置 pre-commit 等 Git Hooks 拦截检查代码风格）
+# 1. 安装依赖（自动配置 Husky pre-commit 钩子拦截不规范代码）
 npm install
 
 # 2. 本地开发热编译监听（推荐开发调试用）

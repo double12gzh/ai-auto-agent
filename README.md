@@ -85,10 +85,19 @@ alias antigravity='antigravity --remote-debugging-port=9333'
 
 ## 🛠️ Development
 
-If you want to build and modify the extension locally from source or contribute:
+If you want to build and modify the extension locally from source or contribute, please ensure your development environment meets the following requirements:
+
+### Prerequisites
+
+- **Node.js**: `v22.x` is highly recommended (aligned with our CI/CD pipeline).
+- **Editor**: VS Code `v1.100.0+` or Antigravity IDE.
+- **Extensions**: We strongly recommend installing the **ESLint** and **Prettier** extensions in your IDE for real-time code style feedback.
+- **Testing Environment**: You MUST launch the Antigravity IDE with the `--remote-debugging-port=9333` flag to enable CDP monitoring for extension testing.
+
+### Getting Started
 
 ```bash
-# 1. Install dependencies (auto-configures pre-commit Git hooks for style checking)
+# 1. Install dependencies (auto-configures Husky pre-commit Git hooks)
 npm install
 
 # 2. Start development (watch mode)
