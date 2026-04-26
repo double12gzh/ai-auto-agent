@@ -1,0 +1,8 @@
+# Auto-sync package-lock.json when package.json is staged
+if git diff --cached --name-only | grep -q '^package\.json$'; then
+  npm install --package-lock-only
+  git add package-lock.json
+fi
+
+npm run test
+npx lint-staged

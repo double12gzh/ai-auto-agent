@@ -1,0 +1,170 @@
+{
+	"name": "ai-auto-agent",
+	"publisher": "double12gzh",
+	"displayName": "AI Auto Agent",
+	"description": "Automated AI agent assistant: auto-retry on failures, auto-accept edits, smart model rotation when quota runs out.",
+	"version": "0.0.1",
+	"license": "MIT",
+	"icon": "assets/icon.png",
+	"engines": {
+		"vscode": "^1.100.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"extensionKind": [
+		"ui"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./dist/extension.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/double12gzh/ai-auto-agent.git"
+	},
+	"contributes": {
+		"commands": [
+			{
+				"command": "ai-auto-agent.toggle",
+				"title": "AI Auto Agent: Toggle On/Off"
+			},
+			{
+				"command": "ai-auto-agent.showDashboard",
+				"title": "AI Auto Agent: Show Dashboard"
+			},
+			{
+				"command": "ai-auto-agent.retryNow",
+				"title": "AI Auto Agent: Retry Now"
+			},
+			{
+				"command": "ai-auto-agent.switchModel",
+				"title": "AI Auto Agent: Switch to Next Model"
+			},
+			{
+				"command": "ai-auto-agent.selectModels",
+				"title": "AI Auto Agent: Select Models for Rotation"
+			},
+			{
+				"command": "ai-auto-agent.simulateError",
+				"title": "AI Auto Agent: 🧪 Simulate Error Dialog"
+			},
+			{
+				"command": "ai-auto-agent.debugModelSelector",
+				"title": "AI Auto Agent: 🔍 Debug Model Selector DOM"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "ai-auto-agent.toggle",
+				"key": "ctrl+shift+a",
+				"mac": "cmd+shift+a"
+			}
+		],
+		"configuration": {
+			"title": "AI Auto Agent",
+			"properties": {
+				"ai-auto-agent.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable/disable AI Auto Agent"
+				},
+				"ai-auto-agent.cdpPort": {
+					"type": "number",
+					"default": 9333,
+					"description": "Chrome DevTools Protocol remote debugging port. Default 9333 avoids conflict with Antigravity Browser Control on 9222."
+				},
+				"ai-auto-agent.autoRetry": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically retry when AI model fails"
+				},
+				"ai-auto-agent.autoRetryMaxAttempts": {
+					"type": "number",
+					"default": 5,
+					"description": "Maximum number of auto-retry attempts before giving up"
+				},
+				"ai-auto-agent.autoRetryDelayMs": {
+					"type": "number",
+					"default": 2000,
+					"description": "Delay in milliseconds between auto-retry attempts"
+				},
+				"ai-auto-agent.autoAccept": {
+					"type": "boolean",
+					"default": false,
+					"description": "Automatically accept file edits and safe terminal commands"
+				},
+				"ai-auto-agent.dangerousCommands": {
+					"type": "array",
+					"default": [
+						"rm -rf",
+						"sudo rm",
+						"mkfs",
+						"dd if=",
+						"> /dev/sd",
+						"chmod 777",
+						":(){ :|:& };:"
+					],
+					"description": "Commands that will NEVER be auto-accepted"
+				},
+				"ai-auto-agent.modelRotation": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically switch to next model when quota is exhausted"
+				},
+				"ai-auto-agent.modelList": {
+					"type": "array",
+					"default": [
+						"gemini-2.5-pro",
+						"claude-4-sonnet",
+						"gemini-2.5-flash",
+						"claude-4-opus"
+					],
+					"description": "Ordered list of models for rotation. Will cycle through when quota runs out."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"compile": "npm run check-types && node esbuild.js",
+		"watch": "node esbuild.js --watch",
+		"check-types": "tsc --noEmit",
+		"lint": "eslint src",
+		"format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+		"package": "npm run check-types && node esbuild.js --production",
+		"prepare": "husky",
+		"test": "mocha -r ts-node/register src/test/setup.js src/test/**/*.test.ts"
+	},
+	"lint-staged": {
+		"*.{ts,js}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{json,md,yml}": [
+			"prettier --write"
+		]
+	},
+	"devDependencies": {
+		"@types/chai": "^5.2.3",
+		"@types/mocha": "^10.0.10",
+		"@types/node": "22.x",
+		"@types/sinon": "^21.0.1",
+		"@types/vscode": "^1.100.0",
+		"@types/ws": "^8.18.1",
+		"@typescript-eslint/eslint-plugin": "^8.58.2",
+		"@typescript-eslint/parser": "^8.58.2",
+		"chai": "^4.5.0",
+		"esbuild": "^0.27.1",
+		"eslint": "^10.2.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.4.0",
+		"mocha": "^11.7.5",
+		"prettier": "^3.8.2",
+		"sinon": "^21.1.2",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.9.3"
+	},
+	"dependencies": {
+		"ws": "^8.18.1"
+	}
+}
