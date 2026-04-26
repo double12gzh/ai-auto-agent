@@ -1,6 +1,6 @@
 {
 	"name": "ai-auto-agent",
-	"publisher": "double12gzh",
+	"publisher": "JeffreyGuan",
 	"displayName": "AI Auto Agent",
 	"description": "Automated AI agent assistant: auto-retry on failures, auto-accept edits, smart model rotation when quota runs out.",
 	"version": "0.0.1",
