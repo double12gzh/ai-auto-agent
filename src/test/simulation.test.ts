@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { AutoRetry } from '../features/autoRetry';
@@ -283,7 +285,9 @@ describe('Simulation: Agent Terminated Infinite Retry', () => {
 			clock.tick(65000);
 			await triggerDetect(retryButton);
 		}
-		console.log(`  Phase 2: 新增 ${totalRetries - retries2Start} 次重试 (累计 ${totalRetries})`);
+		console.log(
+			`  Phase 2: 新增 ${totalRetries - retries2Start} 次重试 (累计 ${totalRetries})`
+		);
 		assert.strictEqual(totalRetries, 10, 'Phase 2 累计应该是 10 次');
 
 		// ── Phase 3: 再切模型 + resetCount ─────────────────
@@ -293,7 +297,9 @@ describe('Simulation: Agent Terminated Infinite Retry', () => {
 			clock.tick(65000);
 			await triggerDetect(retryButton);
 		}
-		console.log(`  Phase 3: 新增 ${totalRetries - retries3Start} 次重试 (累计 ${totalRetries})`);
+		console.log(
+			`  Phase 3: 新增 ${totalRetries - retries3Start} 次重试 (累计 ${totalRetries})`
+		);
 		assert.strictEqual(totalRetries, 15, 'Phase 3 累计应该是 15 次');
 
 		// ── Phase 4: 全局 cap 应该已到达 ──────────────────
@@ -319,7 +325,9 @@ describe('Simulation: Agent Terminated Infinite Retry', () => {
 		assert.strictEqual(totalRetries, 16, 'fullReset 后应该能重试');
 		console.log(`  Phase 5: fullReset 后恢复, 总计 ${totalRetries} 次重试 ✅`);
 
-		console.log(`\n  📊 最终统计: ${totalRetries} 次重试, ${maxExceededEvents} 次 maxExceeded, ${globalCapEvents} 次全局 cap`);
+		console.log(
+			`\n  📊 最终统计: ${totalRetries} 次重试, ${maxExceededEvents} 次 maxExceeded, ${globalCapEvents} 次全局 cap`
+		);
 		console.log(`  ✅ 端到端模拟通过!\n`);
 	});
 });

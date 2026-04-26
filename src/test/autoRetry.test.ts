@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { AutoRetry } from '../features/autoRetry';
@@ -232,10 +233,10 @@ describe('AutoRetry', () => {
 		// Trigger first detect - should acquire lock and wait
 		const p1 = triggerDetect(retryEl);
 		assert.strictEqual((autoRetry as any)['clickInProgress'], true);
-		
+
 		// Trigger second detect immediately - should be blocked by lock
 		await triggerDetect(retryEl);
-		
+
 		// Finish the first click
 		resolveClick!(true);
 		await p1;
@@ -337,6 +338,10 @@ describe('AutoRetry', () => {
 			sessionTargetId: 'test-session-1',
 		};
 		await triggerDetect(retryEl);
-		assert.strictEqual((autoRetry as any)['retryCount'], 0, 'Should not retry during capacity-exhausted wait period');
+		assert.strictEqual(
+			(autoRetry as any)['retryCount'],
+			0,
+			'Should not retry during capacity-exhausted wait period'
+		);
 	});
 });

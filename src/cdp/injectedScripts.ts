@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /// <reference lib="dom" />
 
 /** IPC binding name used for observer → Node.js communication. */
@@ -49,7 +51,9 @@ export function buildObserverScript(dangerousCommands: string[]): string {
 			for (let i = 0; i < 10 && el; i++) {
 				el = el.parentElement;
 				if (!el) break;
-				const code = el.querySelector('code, pre, [class*="terminal-command"], [class*="code-block"]');
+				const code = el.querySelector(
+					'code, pre, [class*="terminal-command"], [class*="code-block"]'
+				);
 				if (code) return (code.textContent || '').trim();
 			}
 			return '';
@@ -83,25 +87,33 @@ export function buildObserverScript(dangerousCommands: string[]): string {
 
 			// ── Unified scan: TreeWalker for all button types ──────────────────
 			// Single O(D) pass over the DOM — handles run, accept, allow, retry, continue
-			const walker = document.createTreeWalker(
-				document.body,
-				NodeFilter.SHOW_ELEMENT,
-				{
-					acceptNode: function (node: Element) {
-						const tag = node.tagName;
-						const role = node.getAttribute('role');
-						const className = typeof node.className === 'string' ? node.className : (node.getAttribute('class') || '');
+			const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT, {
+				acceptNode: function (node: Element) {
+					const tag = node.tagName;
+					const role = node.getAttribute('role');
+					const className =
+						typeof node.className === 'string'
+							? node.className
+							: node.getAttribute('class') || '';
 
-						if (tag === 'BUTTON' || tag.indexOf('-BUTTON') !== -1 || role === 'button' ||
-							(tag === 'A' && (className.indexOf('monaco-button') !== -1 || className.indexOf('btn') !== -1 || className.indexOf('action') !== -1)) ||
-							className.indexOf('monaco-button') !== -1 ||
-							(tag === 'INPUT' && ((node as HTMLInputElement).type === 'button' || (node as HTMLInputElement).type === 'submit'))) {
-							return NodeFilter.FILTER_ACCEPT;
-						}
-						return NodeFilter.FILTER_SKIP;
+					if (
+						tag === 'BUTTON' ||
+						tag.indexOf('-BUTTON') !== -1 ||
+						role === 'button' ||
+						(tag === 'A' &&
+							(className.indexOf('monaco-button') !== -1 ||
+								className.indexOf('btn') !== -1 ||
+								className.indexOf('action') !== -1)) ||
+						className.indexOf('monaco-button') !== -1 ||
+						(tag === 'INPUT' &&
+							((node as HTMLInputElement).type === 'button' ||
+								(node as HTMLInputElement).type === 'submit'))
+					) {
+						return NodeFilter.FILTER_ACCEPT;
 					}
-				}
-			);
+					return NodeFilter.FILTER_SKIP;
+				},
+			});
 
 			let node;
 			while ((node = walker.nextNode())) {
@@ -145,9 +157,13 @@ export function buildObserverScript(dangerousCommands: string[]): string {
 					detected = { type: 'allow-permission' };
 				} else if (startsWithWord(text, 'allow') || text === '允许') {
 					detected = { type: 'allow-permission' };
-				} else if (allText.indexOf('retry') !== -1 || allText.indexOf('\u91cd\u8bd5') !== -1 ||
-					allText.indexOf('try again') !== -1 || allText.indexOf('reconnect') !== -1 ||
-					allText.indexOf('\u91cd\u65b0\u8fde\u63a5') !== -1) {
+				} else if (
+					allText.indexOf('retry') !== -1 ||
+					allText.indexOf('\u91cd\u8bd5') !== -1 ||
+					allText.indexOf('try again') !== -1 ||
+					allText.indexOf('reconnect') !== -1 ||
+					allText.indexOf('\u91cd\u65b0\u8fde\u63a5') !== -1
+				) {
 					detected = { type: 'retry-button' };
 				} else if (startsWithWord(text, 'continue') || text === '继续') {
 					detected = { type: 'continue-button' };
@@ -157,7 +173,7 @@ export function buildObserverScript(dangerousCommands: string[]): string {
 					if (detected.type === 'blocked') {
 						results.push({
 							type: 'blocked-command',
-							commandText: detected.commandText
+							commandText: detected.commandText,
 						});
 						continue;
 					}
@@ -176,7 +192,15 @@ export function buildObserverScript(dangerousCommands: string[]): string {
 						retryDetectCount++;
 						if (retryDetectCount > EMERGENCY_THRESHOLD) {
 							(window as any).__AA_PAUSED = true;
-							results.push({ type: 'emergency-stop', reason: 'Too many retry detections (' + retryDetectCount + ' in ' + Math.round((now - retryDetectWindowStart) / 1000) + 's)' });
+							results.push({
+								type: 'emergency-stop',
+								reason:
+									'Too many retry detections (' +
+									retryDetectCount +
+									' in ' +
+									Math.round((now - retryDetectWindowStart) / 1000) +
+									's)',
+							});
 						}
 					} else {
 						// ── Other button types: click immediately as before ──
@@ -192,18 +216,28 @@ export function buildObserverScript(dangerousCommands: string[]): string {
 			const iframes = document.querySelectorAll('iframe');
 			for (let fi = 0; fi < iframes.length; fi++) {
 				try {
-					const iframeDoc = iframes[fi].contentDocument || iframes[fi].contentWindow?.document;
+					const iframeDoc =
+						iframes[fi].contentDocument || iframes[fi].contentWindow?.document;
 					if (!iframeDoc) continue;
-					const iBtns = iframeDoc.querySelectorAll('button, [role="button"], a[class*="button"], [class*="retry"]');
+					const iBtns = iframeDoc.querySelectorAll(
+						'button, [role="button"], a[class*="button"], [class*="retry"]'
+					);
 					for (let bi = 0; bi < iBtns.length; bi++) {
 						const ibtn = iBtns[bi];
 						const iRect = ibtn.getBoundingClientRect();
 						if (iRect.width === 0 || iRect.height === 0) continue;
 						const iLast = parseInt(ibtn.getAttribute('data-aa-t') || '0', 10);
 						if (now - iLast < RETRY_COOLDOWN_MS) continue;
-						const iText = ((ibtn.textContent || '') + ' ' + (ibtn.getAttribute('aria-label') || '')).toLowerCase();
-						if (iText.indexOf('retry') !== -1 || iText.indexOf('\u91cd\u8bd5') !== -1 ||
-							iText.indexOf('try again') !== -1) {
+						const iText = (
+							(ibtn.textContent || '') +
+							' ' +
+							(ibtn.getAttribute('aria-label') || '')
+						).toLowerCase();
+						if (
+							iText.indexOf('retry') !== -1 ||
+							iText.indexOf('\u91cd\u8bd5') !== -1 ||
+							iText.indexOf('try again') !== -1
+						) {
 							// Report only — no click
 							ibtn.setAttribute('data-aa-t', String(now));
 							results.push({ type: 'retry-button' });
@@ -216,16 +250,41 @@ export function buildObserverScript(dangerousCommands: string[]): string {
 
 			// ── Error classification ──────────────────────────────────────────
 			const errorClassification = [
-				{ patterns: ['quota exceeded', '额度已用完', '配额', 'resource exhausted'], category: 'quota-exhausted' },
+				{
+					patterns: ['quota exceeded', '额度已用完', '配额', 'resource exhausted'],
+					category: 'quota-exhausted',
+				},
 				{ patterns: ['rate limit', 'too many requests', '429'], category: 'rate-limited' },
-				{ patterns: ['capacity', 'overloaded', 'high traffic'], category: 'capacity-exhausted' },
-				{ patterns: ['agent terminated', 'connection error', 'connection lost', 'session expired', 'timed out'], category: 'agent-terminated' },
-				{ patterns: ['server error', 'internal error', 'failed to', '503', '500', 'experiencing'], category: 'server-error' }
+				{
+					patterns: ['capacity', 'overloaded', 'high traffic'],
+					category: 'capacity-exhausted',
+				},
+				{
+					patterns: [
+						'agent terminated',
+						'connection error',
+						'connection lost',
+						'session expired',
+						'timed out',
+					],
+					category: 'agent-terminated',
+				},
+				{
+					patterns: [
+						'server error',
+						'internal error',
+						'failed to',
+						'503',
+						'500',
+						'experiencing',
+					],
+					category: 'server-error',
+				},
 			];
 			const notifications = document.querySelectorAll(
 				'.notifications-toasts .notification-toast, ' +
-				'[class*="error-message"], [class*="notification"], ' +
-				'.monaco-dialog-box'
+					'[class*="error-message"], [class*="notification"], ' +
+					'.monaco-dialog-box'
 			);
 			for (let ni = 0; ni < notifications.length; ni++) {
 				const ntext = (notifications[ni].textContent || '').toLowerCase();
@@ -237,7 +296,9 @@ export function buildObserverScript(dangerousCommands: string[]): string {
 							results.push({
 								type: 'error-classified',
 								errorCategory: group.category,
-								text: (notifications[ni].textContent || '').trim().substring(0, 200)
+								text: (notifications[ni].textContent || '')
+									.trim()
+									.substring(0, 200),
 							});
 							classified = true;
 							break;
@@ -250,7 +311,9 @@ export function buildObserverScript(dangerousCommands: string[]): string {
 			if (results.length > 0) {
 				try {
 					(window as any)[bindingName](JSON.stringify(results));
-				} catch { /* ignore */ }
+				} catch {
+					/* ignore */
+				}
 			}
 		}
 
@@ -328,19 +391,19 @@ export function buildDialogObserverScript(bindingName: string): string {
 			const dialogBtns = document.querySelectorAll(
 				// Monaco dialog boxes
 				'.monaco-dialog-box button, .monaco-dialog-box [role="button"], ' +
-				'.monaco-dialog-box a.monaco-button, .monaco-dialog-box .monaco-button, ' +
-				// Any element with "dialog" in class
-				'[class*="dialog"] button, [class*="dialog"] [role="button"], [class*="dialog"] .monaco-button, ' +
-				// Notification toasts
-				'.notifications-toasts button, .notifications-toasts [role="button"], .notifications-toasts a.monaco-button, ' +
-				// Additional containers: modals, overlays, popups, alerts, banners
-				'[class*="modal"] button, [class*="modal"] [role="button"], ' +
-				'[class*="overlay"] button, [class*="overlay"] [role="button"], ' +
-				'[class*="popup"] button, [class*="popup"] [role="button"], ' +
-				'[class*="alert"] button, [class*="alert"] [role="button"], ' +
-				'[class*="error"] button, [class*="error"] [role="button"], ' +
-				'[class*="banner"] button, [class*="banner"] [role="button"], ' +
-				'[class*="toast"] button, [class*="toast"] [role="button"]'
+					'.monaco-dialog-box a.monaco-button, .monaco-dialog-box .monaco-button, ' +
+					// Any element with "dialog" in class
+					'[class*="dialog"] button, [class*="dialog"] [role="button"], [class*="dialog"] .monaco-button, ' +
+					// Notification toasts
+					'.notifications-toasts button, .notifications-toasts [role="button"], .notifications-toasts a.monaco-button, ' +
+					// Additional containers: modals, overlays, popups, alerts, banners
+					'[class*="modal"] button, [class*="modal"] [role="button"], ' +
+					'[class*="overlay"] button, [class*="overlay"] [role="button"], ' +
+					'[class*="popup"] button, [class*="popup"] [role="button"], ' +
+					'[class*="alert"] button, [class*="alert"] [role="button"], ' +
+					'[class*="error"] button, [class*="error"] [role="button"], ' +
+					'[class*="banner"] button, [class*="banner"] [role="button"], ' +
+					'[class*="toast"] button, [class*="toast"] [role="button"]'
 			);
 
 			for (let i = 0; i < dialogBtns.length; i++) {
@@ -357,9 +420,13 @@ export function buildDialogObserverScript(bindingName: string): string {
 				const btnTitle = ((btn as HTMLElement).title || '').trim();
 				const btnAllText = (rawText + ' ' + btnAria + ' ' + btnTitle).toLowerCase();
 
-				if (btnAllText.indexOf('retry') !== -1 || btnAllText.indexOf('\u91cd\u8bd5') !== -1 ||
-					btnAllText.indexOf('try again') !== -1 || btnAllText.indexOf('reconnect') !== -1 ||
-					btnAllText.indexOf('\u91cd\u65b0\u8fde\u63a5') !== -1) {
+				if (
+					btnAllText.indexOf('retry') !== -1 ||
+					btnAllText.indexOf('\u91cd\u8bd5') !== -1 ||
+					btnAllText.indexOf('try again') !== -1 ||
+					btnAllText.indexOf('reconnect') !== -1 ||
+					btnAllText.indexOf('\u91cd\u65b0\u8fde\u63a5') !== -1
+				) {
 					// Detect only - no click
 					btn.setAttribute('data-aa-t', String(now));
 					results.push({ type: 'retry-button' });
@@ -372,7 +439,15 @@ export function buildDialogObserverScript(bindingName: string): string {
 					retryDetectCount++;
 					if (retryDetectCount > EMERGENCY_THRESHOLD) {
 						(window as any).__AA_PAUSED = true;
-						results.push({ type: 'emergency-stop', reason: 'Too many retry detections (' + retryDetectCount + ' in ' + Math.round((now - retryDetectWindowStart) / 1000) + 's)' });
+						results.push({
+							type: 'emergency-stop',
+							reason:
+								'Too many retry detections (' +
+								retryDetectCount +
+								' in ' +
+								Math.round((now - retryDetectWindowStart) / 1000) +
+								's)',
+						});
 					}
 				}
 			}
@@ -381,17 +456,39 @@ export function buildDialogObserverScript(bindingName: string): string {
 			const errorClassification = [
 				{ patterns: ['quota exceeded', 'resource exhausted'], category: 'quota-exhausted' },
 				{ patterns: ['rate limit', 'too many requests', '429'], category: 'rate-limited' },
-				{ patterns: ['capacity', 'overloaded', 'high traffic'], category: 'capacity-exhausted' },
-				{ patterns: ['agent terminated', 'connection error', 'connection lost', 'session expired', 'timed out'], category: 'agent-terminated' },
-				{ patterns: ['server error', 'internal error', 'failed to', '503', '500', 'experiencing'], category: 'server-error' }
+				{
+					patterns: ['capacity', 'overloaded', 'high traffic'],
+					category: 'capacity-exhausted',
+				},
+				{
+					patterns: [
+						'agent terminated',
+						'connection error',
+						'connection lost',
+						'session expired',
+						'timed out',
+					],
+					category: 'agent-terminated',
+				},
+				{
+					patterns: [
+						'server error',
+						'internal error',
+						'failed to',
+						'503',
+						'500',
+						'experiencing',
+					],
+					category: 'server-error',
+				},
 			];
 			const dialogs = document.querySelectorAll(
 				'.monaco-dialog-box, .notifications-toasts .notification-toast, ' +
-				'.notification-list-item, .notifications-center .notification-list-item, ' +
-				'[class*="error-message"], [class*="notification"], ' +
-				'[class*="alert"], [class*="banner"], [class*="toast"], ' +
-				'[class*="dialog"], [class*="modal"], ' +
-				'[class*="message-container"], [class*="error-container"]'
+					'.notification-list-item, .notifications-center .notification-list-item, ' +
+					'[class*="error-message"], [class*="notification"], ' +
+					'[class*="alert"], [class*="banner"], [class*="toast"], ' +
+					'[class*="dialog"], [class*="modal"], ' +
+					'[class*="message-container"], [class*="error-container"]'
 			);
 			for (let d = 0; d < dialogs.length; d++) {
 				const dText = (dialogs[d].textContent || '').toLowerCase();
@@ -403,7 +500,7 @@ export function buildDialogObserverScript(bindingName: string): string {
 							results.push({
 								type: 'error-classified',
 								errorCategory: dGroup.category,
-								text: (dialogs[d].textContent || '').trim().substring(0, 200)
+								text: (dialogs[d].textContent || '').trim().substring(0, 200),
 							});
 							dClassified = true;
 							break;
@@ -415,7 +512,9 @@ export function buildDialogObserverScript(bindingName: string): string {
 			if (results.length > 0) {
 				try {
 					(window as any)[bindingName](JSON.stringify(results));
-				} catch { /* ignore */ }
+				} catch {
+					/* ignore */
+				}
 			}
 		}
 
@@ -432,7 +531,7 @@ export function buildDialogObserverScript(bindingName: string): string {
 			childList: true,
 			subtree: true,
 			attributes: true,
-			attributeFilter: ['style', 'class', 'hidden', 'aria-hidden']
+			attributeFilter: ['style', 'class', 'hidden', 'aria-hidden'],
 		});
 
 		// Polling fallback

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { CDPClient } from '../cdp/cdpClient';
-import { DOMMonitor, DetectedElement, ErrorCategory } from '../cdp/domMonitor';
+import { DOMMonitor, DetectedElement } from '../cdp/domMonitor';
 
 /**
  * ModelRotation — Automatically switches to the next model when quota is exhausted.
@@ -286,14 +286,14 @@ export class ModelRotation implements vscode.Disposable {
 		/opus/i,
 		/sonnet/i,
 		/haiku/i,
-		/o[1-9]/i,        // o1, o3, o4 etc.
+		/o[1-9]/i, // o1, o3, o4 etc.
 		/deepseek/i,
 		/qwen/i,
 		/codestral/i,
 		/command[- ]?r/i,
 		/phi[- ]?[0-9]/i,
-		/flash/i,         // Gemini Flash
-		/pro/i,           // Gemini Pro
+		/flash/i, // Gemini Flash
+		/pro/i, // Gemini Pro
 		/thinking/i,
 	];
 
@@ -304,10 +304,11 @@ export class ModelRotation implements vscode.Disposable {
 		// Must not be too long (commands tend to be long phrases)
 		if (text.length > 80) return false;
 		// Must not contain common command/action words
-		const commandPatterns = /^(select|open|run|show|debug|toggle|enable|disable|configure|settings|search|help|view|edit|copy|paste|delete|new |save|close|file|terminal|git )/i;
+		const commandPatterns =
+			/^(select|open|run|show|debug|toggle|enable|disable|configure|settings|search|help|view|edit|copy|paste|delete|new |save|close|file|terminal|git )/i;
 		if (commandPatterns.test(text)) return false;
 		// Check if it matches any known model pattern
-		return ModelRotation.MODEL_NAME_PATTERNS.some(p => p.test(text));
+		return ModelRotation.MODEL_NAME_PATTERNS.some((p) => p.test(text));
 	}
 
 	async fetchAvailableModels(): Promise<string[]> {
@@ -379,7 +380,7 @@ export class ModelRotation implements vscode.Disposable {
 		}
 
 		// Filter: only keep entries that look like actual model names
-		const validModels = Array.from(allRawTexts).filter(text =>
+		const validModels = Array.from(allRawTexts).filter((text) =>
 			ModelRotation.looksLikeModelName(text)
 		);
 
@@ -387,9 +388,9 @@ export class ModelRotation implements vscode.Disposable {
 			// We found items but none look like models — log them for debugging
 			this.log(
 				`ModelRotation: ⚠️ Found ${allRawTexts.size} dropdown items but NONE look like model names. ` +
-				`Items: ${Array.from(allRawTexts).slice(0, 10).join(' | ')}. ` +
-				`The matched selector is likely NOT the model dropdown. ` +
-				`Run "Debug Model Selector DOM" command for details.`
+					`Items: ${Array.from(allRawTexts).slice(0, 10).join(' | ')}. ` +
+					`The matched selector is likely NOT the model dropdown. ` +
+					`Run "Debug Model Selector DOM" command for details.`
 			);
 		}
 

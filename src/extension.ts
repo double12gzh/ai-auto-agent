@@ -87,18 +87,20 @@ export function activate(context: vscode.ExtensionContext) {
 	domMonitor.onDetect((el) => {
 		if (el.type === 'emergency-stop') {
 			updateStatusBar('error');
-			vscode.window.showErrorMessage(
-				`⛔ AI Auto Agent: Emergency Stop Activated. ${el.reason}. ` +
-				`All automatic interactions have been paused to prevent infinite loops.`,
-				'Reset & Resume'
-			).then(selection => {
-				if (selection === 'Reset & Resume') {
-					autoRetry.fullReset();
-					domMonitor.setPaused(false);
-					vscode.window.showInformationMessage('▶️ AI Auto Agent: Resumed');
-					updateStatusBar('active', `${cdpClient.sessionCount} session(s)`);
-				}
-			});
+			vscode.window
+				.showErrorMessage(
+					`⛔ AI Auto Agent: Emergency Stop Activated. ${el.reason}. ` +
+						`All automatic interactions have been paused to prevent infinite loops.`,
+					'Reset & Resume'
+				)
+				.then((selection) => {
+					if (selection === 'Reset & Resume') {
+						autoRetry.fullReset();
+						domMonitor.setPaused(false);
+						vscode.window.showInformationMessage('▶️ AI Auto Agent: Resumed');
+						updateStatusBar('active', `${cdpClient.sessionCount} session(s)`);
+					}
+				});
 		}
 	});
 
@@ -142,7 +144,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	modelRotation.onSwitch(({ from, to }) => {
+	modelRotation.onSwitch(({ to }) => {
 		updateStatusBar('active', `Model: ${to}`);
 		autoRetry.resetCount();
 	});
@@ -177,7 +179,9 @@ export function activate(context: vscode.ExtensionContext) {
 			modelRotation.resetCycle();
 			const found = await autoRetry.triggerRetry();
 			if (found) {
-				vscode.window.showInformationMessage('🔄 AI Auto Agent: Retry triggered successfully');
+				vscode.window.showInformationMessage(
+					'🔄 AI Auto Agent: Retry triggered successfully'
+				);
 			} else {
 				vscode.window.showWarningMessage(
 					'❌ AI Auto Agent: No retry button found. Make sure an error dialog is visible.'
@@ -299,8 +303,10 @@ export function activate(context: vscode.ExtensionContext) {
 								`✅ AI Auto Agent: Saved ${selectedModels.length} models for rotation.`
 							);
 						}
-					} catch (err: any) {
-						vscode.window.showErrorMessage(`Failed to fetch models: ${err.message}`);
+					} catch (err) {
+						vscode.window.showErrorMessage(
+							`Failed to fetch models: ${err instanceof Error ? err.message : String(err)}`
+						);
 					}
 				}
 			);

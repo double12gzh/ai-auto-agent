@@ -28,13 +28,23 @@ export type DetectedElement =
 	| { type: 'retry-button'; sessionTargetId: string }
 	| { type: 'continue-button'; sessionTargetId: string }
 	| { type: 'error-message'; text: string; sessionTargetId: string }
-	| { type: 'error-classified'; errorCategory: ErrorCategory; text: string; sessionTargetId: string }
+	| {
+			type: 'error-classified';
+			errorCategory: ErrorCategory;
+			text: string;
+			sessionTargetId: string;
+	  }
 	| { type: 'model-selector'; currentModel: string; sessionTargetId: string }
 	| { type: 'emergency-stop'; reason: string; sessionTargetId: string };
 
 export type ElementCallback = (element: DetectedElement) => void;
 
-import { BINDING_NAME, buildObserverScript, buildDialogObserverScript, buildMockDialogScript } from './injectedScripts';
+import {
+	BINDING_NAME,
+	buildObserverScript,
+	buildDialogObserverScript,
+	buildMockDialogScript,
+} from './injectedScripts';
 
 /**
  * DOMMonitor — Injects MutationObserver into webview sessions for event-driven
@@ -228,7 +238,15 @@ export class DOMMonitor {
 	 * Handle the IPC payload from an injected observer script.
 	 */
 	private handleBindingPayload(payload: string, session: CDPSession): void {
-		let elements: Array<{ type: string; commandText?: string; text?: string; errorCategory?: string; buttonType?: string; btnText?: string; reason?: string }>;
+		let elements: Array<{
+			type: string;
+			commandText?: string;
+			text?: string;
+			errorCategory?: string;
+			buttonType?: string;
+			btnText?: string;
+			reason?: string;
+		}>;
 		try {
 			elements = JSON.parse(payload);
 		} catch {
@@ -279,7 +297,9 @@ export class DOMMonitor {
 						text: raw.text || '',
 						sessionTargetId: session.targetId,
 					};
-					this.log(`DOMMonitor: Error classified as [${raw.errorCategory}]: "${(raw.text || '').substring(0, 80)}"`);
+					this.log(
+						`DOMMonitor: Error classified as [${raw.errorCategory}]: "${(raw.text || '').substring(0, 80)}"`
+					);
 					break;
 				case 'blocked-command':
 					// Handled separately — emit as error
@@ -289,12 +309,18 @@ export class DOMMonitor {
 					this.log(`DOMMonitor: ✓ Click verified — ${raw.buttonType} button dismissed`);
 					continue;
 				case 'click-unverified':
-					this.log(`DOMMonitor: ⚠ Click unverified — ${raw.buttonType} button still visible: "${raw.btnText}". Cooldown cleared for re-scan.`);
+					this.log(
+						`DOMMonitor: ⚠ Click unverified — ${raw.buttonType} button still visible: "${raw.btnText}". Cooldown cleared for re-scan.`
+					);
 					continue;
 				case 'emergency-stop':
 					this.log(`DOMMonitor: ⛔ EMERGENCY STOP — ${raw.reason}`);
 					this.setPaused(true);
-					el = { type: 'emergency-stop', reason: raw.reason || 'Unknown', sessionTargetId: session.targetId };
+					el = {
+						type: 'emergency-stop',
+						reason: raw.reason || 'Unknown',
+						sessionTargetId: session.targetId,
+					};
 					break;
 			}
 
@@ -315,7 +341,8 @@ export class DOMMonitor {
 	 */
 	async findAndClickRetry(): Promise<boolean> {
 		function injectedFindAndClick() {
-			const selectors = 'button, [role="button"], a.monaco-button, [class*="monaco-button"], ' +
+			const selectors =
+				'button, [role="button"], a.monaco-button, [class*="monaco-button"], ' +
 				'[class*="retry"], [data-testid*="retry"], [data-action*="retry"], ' +
 				'.monaco-dialog-box button, .monaco-dialog-box [role="button"], ' +
 				'[class*="dialog"] button, [class*="dialog"] [role="button"], ' +
@@ -331,13 +358,20 @@ export class DOMMonitor {
 				const aria = (btn.getAttribute('aria-label') || '').trim();
 				const title = ((btn as HTMLElement).title || '').trim();
 				const allText = (rawText + ' ' + aria + ' ' + title).toLowerCase();
-				if (allText.indexOf('retry') !== -1 ||
+				if (
+					allText.indexOf('retry') !== -1 ||
 					allText.indexOf('\u91cd\u8bd5') !== -1 ||
 					allText.indexOf('try again') !== -1 ||
 					allText.indexOf('reconnect') !== -1 ||
-					allText.indexOf('\u91cd\u65b0\u8fde\u63a5') !== -1) {
+					allText.indexOf('\u91cd\u65b0\u8fde\u63a5') !== -1
+				) {
 					// Robust click: full mouse event sequence
-					const evtInit = { bubbles: true, cancelable: true, view: window, composed: true };
+					const evtInit = {
+						bubbles: true,
+						cancelable: true,
+						view: window,
+						composed: true,
+					};
 					btn.dispatchEvent(new MouseEvent('mousedown', evtInit));
 					btn.dispatchEvent(new MouseEvent('mouseup', evtInit));
 					btn.dispatchEvent(new MouseEvent('click', evtInit));
@@ -349,23 +383,35 @@ export class DOMMonitor {
 			const iframes = document.querySelectorAll('iframe');
 			for (let fi = 0; fi < iframes.length; fi++) {
 				try {
-					const iframeDoc = iframes[fi].contentDocument || iframes[fi].contentWindow?.document;
+					const iframeDoc =
+						iframes[fi].contentDocument || iframes[fi].contentWindow?.document;
 					if (!iframeDoc) continue;
 					const iBtns = iframeDoc.querySelectorAll(selectors);
 					for (let j = 0; j < iBtns.length; j++) {
 						const ibtn = iBtns[j];
 						const iRect = ibtn.getBoundingClientRect();
 						if (iRect.width === 0 || iRect.height === 0) continue;
-						const iText = ((ibtn.textContent || '') + ' ' + (ibtn.getAttribute('aria-label') || '')).toLowerCase();
+						const iText = (
+							(ibtn.textContent || '') +
+							' ' +
+							(ibtn.getAttribute('aria-label') || '')
+						).toLowerCase();
 						if (iText.indexOf('retry') !== -1 || iText.indexOf('try again') !== -1) {
-							const iEvt = { bubbles: true, cancelable: true, view: iframes[fi].contentWindow, composed: true };
-							ibtn.dispatchEvent(new MouseEvent('mousedown', iEvt as any));
-							ibtn.dispatchEvent(new MouseEvent('mouseup', iEvt as any));
-							ibtn.dispatchEvent(new MouseEvent('click', iEvt as any));
+							const iEvt = {
+								bubbles: true,
+								cancelable: true,
+								view: iframes[fi].contentWindow,
+								composed: true,
+							};
+							ibtn.dispatchEvent(new MouseEvent('mousedown', iEvt as EventInit));
+							ibtn.dispatchEvent(new MouseEvent('mouseup', iEvt as EventInit));
+							ibtn.dispatchEvent(new MouseEvent('click', iEvt as EventInit));
 							return (ibtn.textContent || '').trim().substring(0, 50);
 						}
 					}
-				} catch { /* ignore */ }
+				} catch {
+					/* ignore */
+				}
 			}
 			return false;
 		}
@@ -377,7 +423,9 @@ export class DOMMonitor {
 		const results = await this.cdp.evaluateAll(script);
 		for (const [targetId, val] of results) {
 			if (val && val !== false) {
-				this.log(`DOMMonitor: ✓ Retry button clicked via on-demand scan in ${targetId.substring(0, 8)}: "${val}"`);
+				this.log(
+					`DOMMonitor: ✓ Retry button clicked via on-demand scan in ${targetId.substring(0, 8)}: "${val}"`
+				);
 				return true;
 			}
 		}
@@ -408,7 +456,11 @@ export class DOMMonitor {
 	 * @param errorType - Type of error to simulate (controls text and classification)
 	 */
 	async injectMockErrorDialog(
-		errorType: 'agent-terminated' | 'rate-limited' | 'quota-exhausted' | 'server-error' = 'agent-terminated'
+		errorType:
+			| 'agent-terminated'
+			| 'rate-limited'
+			| 'quota-exhausted'
+			| 'server-error' = 'agent-terminated'
 	): Promise<boolean> {
 		const errorMessages: Record<string, { title: string; body: string }> = {
 			'agent-terminated': {

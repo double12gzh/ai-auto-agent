@@ -140,7 +140,7 @@ export class CDPClient implements vscode.Disposable {
 		let targets: CDPTarget[];
 		try {
 			targets = await this.fetchTargets();
-		} catch (err) {
+		} catch {
 			// CDP port not reachable — no action
 			return 0;
 		}
